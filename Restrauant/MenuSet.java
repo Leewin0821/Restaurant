@@ -36,7 +36,7 @@ public class MenuSet implements ProcessLine {
     }
 
     /** read each line of text file, count the number of lines
-     @param fileName input file name
+     @param fileName name of input file
      */
     public void readFile(String fileName){
         try{
