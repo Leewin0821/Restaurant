@@ -23,7 +23,15 @@ public class OrderList implements ProcessLine,Iterable<Order>{
      * @return element at that index in orderList
      */
     public Order get(int num){
-        return orderList.get(num);
+        Order order = new Order(0,0,"",0);
+        try{
+            if (orderList.get(num) instanceof Order){
+                order = (Order) orderList.get(num);
+            }
+        } catch (NullPointerException npe){
+            System.out.println("Trying get a non order object\n"+npe);
+        }
+        return order;
     }
 
 
