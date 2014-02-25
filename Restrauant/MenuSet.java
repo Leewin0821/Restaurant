@@ -20,7 +20,15 @@ public class MenuSet implements ProcessLine {
     }
 
     public void add(Menu menu){
-        menuSet.add(menu);
+        Menu menu1 = new Menu("",0,"");
+        try{
+            if (menu instanceof Menu){
+                menu1 = (Menu) menu;
+            }
+        } catch (ClassCastException cce){
+            System.out.println("Wrong usage of menu object\n"+cce);
+        }
+        menuSet.add(menu1);
     }
 
     public int getSize(){
