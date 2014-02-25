@@ -17,9 +17,7 @@ public class OrderList implements ProcessLine,Iterable<Order>{
         orderList = new ArrayList<Order>();
     }
 
-    public Order get(int num){
-        return orderList.get(num);
-    }
+
 
     /** read each line of text file, count the number of lines
         @param fileName input file name
