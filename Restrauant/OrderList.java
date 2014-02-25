@@ -17,6 +17,14 @@ public class OrderList implements ProcessLine,Iterable<Order>{
         orderList = new ArrayList<Order>();
     }
 
+    /**
+     * re write the method to get index element of orderList
+     * @param num index number
+     * @return element at that index
+     */
+    public Order get(int num){
+        return orderList.get(num);
+    }
 
 
     /** read each line of text file, count the number of lines
