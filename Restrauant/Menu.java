@@ -1,7 +1,7 @@
 package Restrauant;
 
 /**
- * provide a class to hold all information of a menu
+ * provide a class to hold all data of a menu
  */
 public class Menu implements Comparable<Menu>{
     private String dishName;
