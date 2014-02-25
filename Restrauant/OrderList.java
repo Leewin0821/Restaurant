@@ -20,7 +20,7 @@ public class OrderList implements ProcessLine,Iterable<Order>{
     /**
      * re write the method to get index element of orderList
      * @param num index number
-     * @return element at that index
+     * @return element at that index of orderList
      */
     public Order get(int num){
         return orderList.get(num);
