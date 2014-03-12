@@ -3,9 +3,7 @@ package Restrauant;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * create an ArrayList of orders by reading input file
@@ -25,8 +23,8 @@ public class OrderList implements ProcessLine,Iterable<Order>{
     public Order get(int num){
         Order order = new Order(0,0,"",0);
         try{
-            if (orderList.get(num) instanceof Order){
-                order = (Order) orderList.get(num);
+            if (orderList.get(num) != null){
+                order = orderList.get(num);
             }
         } catch (NullPointerException npe){
             System.out.println("Trying get a non order object\n"+npe);
@@ -42,13 +40,11 @@ public class OrderList implements ProcessLine,Iterable<Order>{
         try{
             File f = new File(fileName);
             Scanner scanner = new Scanner(f);
-            int lineNum = 0;
+            int line = 0;
             while (scanner.hasNextLine()){
                 String inputLine = scanner.nextLine();
-                lineNum++;
-                if (inputLine.length()!=0){
-                    process(inputLine,lineNum);
-                }
+                line++;
+                process(inputLine,line);
             }
         }catch (FileNotFoundException fnfe){
             System.out.println(fileName + " doesn't exist\n" + fnfe);
@@ -73,6 +69,9 @@ public class OrderList implements ProcessLine,Iterable<Order>{
             int tableID = Integer.parseInt(parts[0].trim());
             if (tableID < 0 ){
                 throw new NegativeNumberException(tableID);
+            }
+            if (parts[1].equals("")){
+                throw new NullPointerException("Null element at: "+lineNum);
             }
             String foodName = parts[1];
             for(int index=0;index<foodName.length();index++){
@@ -129,4 +128,5 @@ public class OrderList implements ProcessLine,Iterable<Order>{
             orderList.remove(index);
         }
     }
+
 }

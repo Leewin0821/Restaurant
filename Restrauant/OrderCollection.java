@@ -50,6 +50,7 @@ public class OrderCollection {
     public String processFrequencyReport(){
         String message = "FREQUENCY REPORT:\n=========================\n";
         String message2 =  "\nDISHED NOT ORDERED:\n=========================\n";
+        try{
         for(String str : dishNamePrice.keySet()){
             orderAndPrice.put(str,0);
         }
@@ -64,6 +65,10 @@ public class OrderCollection {
             } else message2 += String.format("%-20s",dishPair.getKey())+"\n";
         }
         message += message2;
+        }catch (NullPointerException npe){
+            System.out.println("There is null element in input file\n"+npe);
+            System.exit(1);
+        }
         return message+"\n";
     }
 

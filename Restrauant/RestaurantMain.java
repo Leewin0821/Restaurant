@@ -6,8 +6,12 @@ package Restrauant;
  */
 public class RestaurantMain {
     public static void main(String[] args){
-        RestaurantManager manager = new RestaurantManager();
-        manager.run();
-        manager.showGUI();
+        MVCRestaurantModel model = new MVCRestaurantModel();
+        MVCRestaurantView view = new MVCRestaurantView(model);
+        MVCRestaurantController controller = new MVCRestaurantController(view,model);
+        view.setVisible(true);
+       // RestaurantManager manager = new RestaurantManager();
+       // manager.showGUI();
+      //  manager.run();
     }
 }

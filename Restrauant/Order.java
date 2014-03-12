@@ -10,6 +10,7 @@ public class Order {
     private int quantity;
 
     public Order(int orderID,int tableId,String foodName, int quantity){
+        try{
         if (orderID < 0) throw new IllegalArgumentException("OrderID can not less than 0: "+orderID);
         this.orderID=orderID;
         if (tableId < 0 ) throw new IllegalArgumentException("TableID can not less than 0: "+tableId);
@@ -17,6 +18,10 @@ public class Order {
         this.foodName=foodName;
         if (quantity < 0 ) throw new IllegalArgumentException("Quantity can not less than 0: "+quantity);
         this.quantity=quantity;
+        }catch (NullPointerException npe){
+            System.out.println("There is null element in input orders file\n"+npe);
+            System.exit(1);
+        }
     }
 
     public int getOrderID(){return orderID;}

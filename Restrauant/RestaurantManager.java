@@ -32,7 +32,7 @@ public class RestaurantManager {
     }
 
     /**
-     * implement the GUI part, set GUI visiable
+     * implement the GUI part, set GUI visible
      */
     public void showGUI(){
         BillGUI gui = new BillGUI(allOrderCollection);

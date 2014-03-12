@@ -9,10 +9,15 @@ public class Menu implements Comparable<Menu>{
     private String category;
 
     public Menu(String dishName,double price,String category){
+        try{
         this.dishName=dishName;
         if (price < 0) throw new IllegalArgumentException("Price can not less than 0: "+price);
         this.price=price;
         this.category=category;
+        } catch (NullPointerException npe){
+            System.out.println("There is null element in input menus file\n"+npe);
+            System.exit(1);
+        }
     }
 
     /**

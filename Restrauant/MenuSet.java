@@ -22,8 +22,8 @@ public class MenuSet implements ProcessLine {
     public void add(Menu menu){
         Menu menu1 = new Menu("",0,"");
         try{
-            if (menu instanceof Menu){
-                menu1 = (Menu) menu;
+            if (menu!=null){
+                menu1 =  menu;
             }
         } catch (ClassCastException cce){
             System.out.println("Wrong usage of menu object\n"+cce);
@@ -69,6 +69,9 @@ public class MenuSet implements ProcessLine {
             String parts[] = line.split(";");
             if (parts.length >3){
                 throw new InputElementOutOfBoundException(lineNum);
+            }
+            if (parts[1].equals("")){
+                throw new NullPointerException("Null element at: "+lineNum);
             }
             String dishName = parts[0];
             for(int index=0;index<dishName.length();index++){
