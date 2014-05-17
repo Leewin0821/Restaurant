@@ -1,128 +1,322 @@
 package Restrauant;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by leewin on 14-3-11.
+ * Created by leewin on 14-1-28.
+ * provide a model to store all data
+ * made some commit here
  */
-public class MVCRestaurantModel extends Observable implements Runnable{
-    private ArrayList<Order> model;
+public class MVCRestaurantModel extends Observable{
+    private OrderCollection allOrderCollection;
+    private OrderList allOrderList; //contains all orders
+    private MenuSet allMenuSet;
+    private LinkedList<Order> kitchenList;  // contains all the orders displayed in kitchen window
+    private HashMap<Integer,LinkedList<Order>> tableMap; //stores orders, the key is tableID, the value are corresponding orders
+    private Thread firstTableThread;  // used to deliver orders from kitchen to tables
+    private Thread secondTableThread;
+    private Thread kitchenThread;  // used to deliver orders to kitchen
+    private int count; // count threads run times
+    private boolean done; // stop deliver order to tables if true
+    private boolean stop; // terminate deliver order to kitchen if true
+    private OrderList backupList;
+    private BillGUI billGUI;
+    private OrderProducer orderProducer;
 
     public MVCRestaurantModel(){
-        model = new ArrayList<Order>();
+        allOrderCollection = new OrderCollection();
+        allOrderList = new OrderList();
+        allMenuSet = new MenuSet();
+        kitchenList = new LinkedList<Order>();
+        tableMap = new HashMap<Integer, LinkedList<Order>>();// A little cheat, know there are 8 tables before design
+        firstTableThread  = new Thread(new TableThread(this));
+        secondTableThread = new Thread(new TableThread(this));
+        kitchenThread = new Thread(new KitchenThread(this));
+        count = 0;
+        done = false;
+        stop = false;
+        backupList = new OrderList();
+        orderProducer = new OrderProducer();
+        process();  // read input order file when initiation
     }
 
-    public String toString(){
+    /**
+     * read data from random order producer, process data for output
+     */
+    public void process(){
+        orderProducer.run(30);
+        allOrderList = orderProducer.getOrderList();
+        allMenuSet.readFile("Menus.txt");
+        allOrderCollection.getDishNamePrice(allMenuSet.getDishNamePrice());
+    }
+
+    //////////////////////////////////////////////////////////////////
+                 //Below are methods used in threads
+    //////////////////////////////////////////////////////////////////
+
+
+    public int getCount(){
+        return count;
+    }
+
+    public void incrementCount(){
+        count++;
+    }
+
+    /**
+     * set flag to let TableThread stop
+     */
+    public void setDone(){
+        done = true;
+    }
+
+    /**
+     * get flag condition
+     * @return boolean value of done
+     */
+    public boolean isDone(){
+        return done;
+    }
+
+    /**
+     * set flag to let KitchenThread stop
+     */
+    public void setStop(){
+        stop = true;
+    }
+
+    /**
+     * get flag condition
+     * @return boolean value of stop
+     */
+    public boolean isStop(){
+        return stop;
+    }
+
+    /**
+     * pass order list size
+     * @return order list size
+     */
+    public int getOrderListSize(){
+        return allOrderList.getSize();
+    }
+
+    /**
+     * pass order
+     * @param index order index of order list
+     * @return order with the index
+     */
+    public Order getOrderFromOrderList(int index){
+        return allOrderList.get(index);
+    }
+
+    /**
+     * add order to kitchen list
+     * @param order order be passed
+     */
+    public void addToKitchenList(Order order){
+        kitchenList.add(order);
+    }
+
+    /**
+     * pass the first order of kitchen list
+     * @return the first order
+     */
+    public Order getFirstOfKitchenList(){
+        if (kitchenList.isEmpty()){
+            return null;
+        }
+        return kitchenList.getFirst();
+    }
+
+    /**
+     * remove the first order of kitchen list
+     */
+    public void removeFirstOfKitchenList(){
+        try{
+            kitchenList.removeFirst();
+        } catch (NoSuchElementException nsee){
+            System.out.println("No remaining element is KitchenList: "+nsee);
+        }
+
+    }
+
+    /**
+     * check whether kitchen list has not been created
+     * @return exist true, otherwise false
+     */
+    public boolean isKitchenListEmpty(){
+        return kitchenList.isEmpty();
+    }
+
+    /**
+     * pass order number of one table
+     * @param tableId the table want to check
+     * @return order number or 0
+     */
+    public int getTableOrderSize(int tableId){
+        if (tableMap.get(tableId) == null)
+            return 0;
+        return tableMap.get(tableId).size();
+    }
+
+    /**
+     * put new entry to table map
+     * @param tableId tableId used as key
+     * @param value LinkedList used as value
+     */
+    public void putPairInTableMap(int tableId,LinkedList<Order> value){
+        tableMap.put(tableId, value);
+    }
+
+    /**
+     * add the order to one table
+     * @param tableId table number
+     * @param order the order want to be added
+     */
+    public void addOrderToTableMap(int tableId,Order order){
+        tableMap.get(tableId).add(order);
+    }
+
+    /**
+     * add order to a backupList
+     * @param order the order want to be added
+     */
+    public void addToBackupList(Order order){
+        backupList.addOrder(order);
+    }
+
+    /**
+     * organize order display format to show at kitchen window
+     * @return well organised output message
+     */
+    public String getKitchenOrders(){
         String message = "";
-        for(Order order : model){
-            message += order.toString();
+        for(Order order : kitchenList){
+            message += String.format("%9s",order.getOrderID());
+            message += String.format("%14s",order.getTableId())+"    ";
+            message += String.format("%-20s", order.getFoodName());
+            message += String.format("%-5s",order.getQuantity())+"\n";
         }
         return message;
     }
 
-    public void setInterrupted(){
-        Thread.currentThread().interrupt();
+    /**
+     * organize order display format to show at table windows
+     * @param index tableId
+     * @return output message for corresponding table
+     */
+    public String getTableOrders(int index){
+        String message = "";
+        if (tableMap.get(index) != null){
+            for(Order order : tableMap.get(index)){
+                message += order.getOrderID()+"  "+order.getFoodName()+" * "+order.getQuantity()+"\n";
+            }
+            return message;
+        } else return ""; // if no order in one table, return nothing
     }
 
-    public void run(){
-        while (!Thread.currentThread().isInterrupted()){
-        try{
-            File file = new File("Orders.txt");
-            Scanner scanner = new Scanner(file);
-            int lineNum = 0;
-            String inputLine;
-            while (scanner.hasNextLine()){
-                Thread.sleep(1000);
-                inputLine = scanner.nextLine();
-                lineNum++;
-                ReadThread readThread = new ReadThread(inputLine,lineNum);
-                readThread.start();
-            }
-        } catch (FileNotFoundException fnfe){
-            System.out.println("Input Orders file not found at: "+fnfe);
+    /**
+     * start two thread to simulate deliveries to kitchen and tables
+     */
+    public void startProcess(){
+        kitchenThread.start();
+        firstTableThread.start();
+        secondTableThread.start();
+    }
+
+    //////////////////////////////////////////////////////////////
+                 //Below are methods called by buttons
+    /////////////////////////////////////////////////////////////
+
+    public void addOrdersToCollection(){
+        allOrderCollection.addOrders(backupList);
+        allOrderCollection.processSummary();
+    }
+
+    /**
+     * implement the GUI part, set GUI visible
+     */
+    public void showGUI(){
+        billGUI = new BillGUI(allOrderCollection);
+        billGUI.setVisible(true);
+    }
+
+    /**
+     * write output information to a specific file
+     * @param fileName output file name
+     */
+    public void writeToFile(String fileName){
+        FileWriter fileWriter;
+        String message = allMenuSet.processMenuInfo()+"\n"+
+                         allOrderCollection.processFrequencyReport()+"\n"+
+                         allOrderCollection.getTableSummary()+"\n"+
+                         allOrderCollection.processSaleSummary()+"\n";
+        try {
+            fileWriter = new FileWriter(fileName);
+            fileWriter.write(message);
+            fileWriter.close();
+        } catch (FileNotFoundException e){
+            e.printStackTrace();
             System.exit(0);
-        } catch (InterruptedException ie){
-            System.out.println("Model thread be interrupted at: "+ie);
-        }
-        }
-    }
-
-    private class ReadThread extends Thread{
-        private String inputLine;
-        private int lineNum;
-
-        public ReadThread(String inputLine,int lineNum){
-            this.inputLine = inputLine;
-            this.lineNum = lineNum;
-        }
-
-        public void run(){
-            try{
-                String parts[] = inputLine.split(";");
-                if (parts.length >3){
-                    throw new InputElementOutOfBoundException(lineNum);
-                }
-                int tableID = Integer.parseInt(parts[0].trim());
-                if (tableID < 0 ){
-                    throw new NegativeNumberException(tableID);
-                }
-                if (parts[1].equals("")){
-                    throw new NullPointerException("Null element at: "+lineNum);
-                }
-                String foodName = parts[1];
-                for(int index=0;index<foodName.length();index++){
-                    if (!(foodName.charAt(index)>='a'&&foodName.charAt(index)<='z'||
-                            foodName.charAt(index)>='A'&&foodName.charAt(index)<='Z'||
-                            foodName.charAt(index)==' ')){
-                        throw new NonCharacterException(foodName);
-                    }
-                }
-                int quantity = Integer.parseInt(parts[2].trim());
-                if (quantity < 0){
-                    throw new NegativeNumberException(quantity);
-                }
-                Order order = new Order(lineNum,tableID,foodName,quantity);
-                model.add(order);
-                setChanged();
-                notifyObservers();
-                clearChanged();
-            }catch (NumberFormatException nfe){
-                System.out.println("Input order tableID or quantity is not a number at line: "+lineNum+"\n"+nfe);
-                System.exit(1);
-            }catch (NegativeNumberException nne){
-                System.out.println("Input order tableID or quantity is not a positive number at line: "+lineNum+"\n"+nne);
-                System.exit(1);
-            }catch (InputElementOutOfBoundException ieoob){
-                System.out.println("Input order has too many elements at line: "+ieoob);
-                System.exit(1);
-            }catch (ArrayIndexOutOfBoundsException aiooe){
-                System.out.println("Input order have elements out of array bounds at line: "+lineNum+"\n"+aiooe);
-                System.exit(1);
-            }catch (NonCharacterException nce){
-                System.out.println("Input order have non-character elements at line: "+lineNum+"\n"+nce);
-                System.exit(1);
-            }
+        } catch (IOException e){
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
-    private LinkedList<Observer> registeredObservers = new LinkedList<Observer>();
+    ///////////////////////////////////////////////////////////////////////
+            //Below are methods related to observers
+    ///////////////////////////////////////////////////////////////////////
 
+    private LinkedList<Observer> registeredObservers = new LinkedList<Observer>(); // create list to hold observers
+
+    /**
+     * add observer to registeredObservers list
+     * @param obs observer need to be added
+     */
     public void registerObserver( Observer obs)
     {
-        registeredObservers.add( obs);
+        try{
+            registeredObservers.add( obs);
+        } catch (NullPointerException npe){
+            System.out.println("Null observer when registering Manager: "+npe);
+        }
+
     }
 
+    /**
+     * delete a observer from registeredObservers list
+     * @param obs observer need to be deleted
+     */
     public void removeObserver( Observer obs)
     {
         registeredObservers.remove( obs);
     }
 
+    /**
+     * used to notify observer update
+     */
     public void notifyObservers()
     {
-        Object args = null;
-        for( Observer obs : registeredObservers)
-            obs.update(this,args);
+        if (registeredObservers.size() == 0){
+            System.out.println("Manager registered observers list is null");
+        } else {
+            for( Observer obs : registeredObservers)
+                obs.update(this,null);    // set argument as null, don't pass value
+        }
+    }
+
+    /**
+     * bundle three methods up to call at once
+     */
+    public void sendNotifyToObservers(){
+        setChanged();    //set signal indicate there has state changed
+        notifyObservers();  //inform observer
+        clearChanged();  //clear signal for next inform
     }
 
 }

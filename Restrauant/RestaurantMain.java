@@ -10,8 +10,5 @@ public class RestaurantMain {
         MVCRestaurantView view = new MVCRestaurantView(model);
         MVCRestaurantController controller = new MVCRestaurantController(view,model);
         view.setVisible(true);
-       // RestaurantManager manager = new RestaurantManager();
-       // manager.showGUI();
-      //  manager.run();
     }
 }

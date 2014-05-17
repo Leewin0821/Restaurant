@@ -6,5 +6,5 @@ package Restrauant;
  */
 public interface ProcessLine {
     public void readFile(String fileName);
-    public void process(String s, int i);
+    public void process(String s);
 }

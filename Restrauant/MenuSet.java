@@ -2,7 +2,6 @@ package Restrauant;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -42,36 +41,32 @@ public class MenuSet implements ProcessLine {
         try{
             File f = new File(fileName);
             Scanner scanner = new Scanner(f);
-            int lineNum = 1;
             while (scanner.hasNextLine()){
                 String inputLine = scanner.nextLine();
-                lineNum++;
                 if (inputLine.length()!=0){
-                    process(inputLine,lineNum);
+                    process(inputLine);
                 }
             }
         }catch (FileNotFoundException fnfe){
             System.out.println(fileName+" doesn't exist\n"+fnfe);
             System.exit(0);
-        }catch (IOException ioe){
-            System.out.println("IOException at: "+ioe);
-            System.exit(1);
         }
     }
 
     /**
      * get data from each line
      * @param line the line of input data file
-     * @param lineNum the number of input line
      */
-    public void process(String line,int lineNum){
+
+
+    public void process(String line){
         try{
             String parts[] = line.split(";");
             if (parts.length >3){
-                throw new InputElementOutOfBoundException(lineNum);
+                throw new InputElementOutOfBoundException(line);
             }
             if (parts[1].equals("")){
-                throw new NullPointerException("Null element at: "+lineNum);
+                throw new NullPointerException("Null element at: "+line);
             }
             String dishName = parts[0];
             for(int index=0;index<dishName.length();index++){
@@ -89,22 +84,23 @@ public class MenuSet implements ProcessLine {
             Menu menu = new Menu(dishName,price,category);
             menuSet.add(menu);
         }catch (NumberFormatException nfe){
-            System.out.println("Input menu price is not a number at line: "+lineNum+"\n"+nfe);
+            System.out.println("Input menu price is not a number at line: "+line+"\n"+nfe);
             System.exit(1);
         }catch (NegativeDoubleException nne){
-            System.out.println("Input menu price is not a positive number at line: "+lineNum+"\n"+nne);
+            System.out.println("Input menu price is not a positive number at line: "+line+"\n"+nne);
             System.exit(1);
         }catch (InputElementOutOfBoundException ieoobe){
             System.out.println("Input menu file has too many elements at line: "+ieoobe);
             System.exit(1);
         }catch (ArrayIndexOutOfBoundsException aiooe){
-            System.out.println("Input menu have elements out of array bounds at line: "+lineNum+"\n"+aiooe);
+            System.out.println("Input menu have elements out of array bounds at line: "+line+"\n"+aiooe);
             System.exit(1);
         }catch (NonCharacterException nce){
-            System.out.println("Input menu have non-character elements at line: "+lineNum+"\n"+nce);
+            System.out.println("Input menu have non-character elements at line: "+line+"\n"+nce);
             System.exit(1);
         }
     }
+
 
     /**
      * return menu information divided by category and ordered by alphabet

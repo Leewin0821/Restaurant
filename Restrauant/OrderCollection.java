@@ -11,11 +11,12 @@ import java.util.*;
 public class OrderCollection {
     private TreeMap<Integer, Order> orderCollection;
     private TreeMap<String,Integer> orderAndPrice = new TreeMap<String, Integer>();
-    private Map<String,Double> dishNamePrice = new HashMap<String, Double>();
-    private ArrayList<Bill> billList = new ArrayList<Bill>();
-    private Map<Integer,ArrayList<Bill>> tableAndBillMap = new HashMap<Integer, ArrayList<Bill>>();
-    private Map<Integer,Double> sortMap = new LinkedHashMap<Integer, Double>();
-    private Map<Integer,String> tableSummaryMap = new HashMap<Integer, String>();
+    private Map<String,Double> dishNamePrice = new HashMap<String, Double>();  // store dish name and its price
+    private ArrayList<Bill> billList = new ArrayList<Bill>();  // store all bills
+    private Map<Integer,ArrayList<Bill>> tableAndBillMap = new HashMap<Integer, ArrayList<Bill>>();  // store tableId and its bills
+    private Map<Integer,Double> sortMap = new LinkedHashMap<Integer, Double>();  //store tableId and its total price
+    private Map<Integer,String> tableSummaryMap = new HashMap<Integer, String>();  // store tableId and its output information
+    private LinkedList<String> draftList = new LinkedList<String>(); // store information of final output
     String pattern = "0.##";	//create output format in a pattern like this
     DecimalFormat df = new DecimalFormat(pattern);
 
@@ -79,6 +80,7 @@ public class OrderCollection {
         createBillList();
         createTableBillMap();
         createTotalPriceBillMap();
+        processTableSummary();
     }
 
     /**
@@ -155,13 +157,23 @@ public class OrderCollection {
     }
 
     /**
+     * get summaries of each table
+     * @return standard output information of all bills
+     */
+    public String getTableSummary(){
+        String outputMessage = "TABLE SUMMARY\n=========================\n\n";
+        for(String data : draftList){
+            outputMessage += data;
+        }
+        return outputMessage;
+    }
+
+    /**
      * organise output format for table summary information with tableAndBillMap,
      * store output message in tableSummaryMap with tableId as key, corresponding whole bill
      * output message as value
-     * @return standard output information of all bills
      */
-    public String processTableSummary(){
-        String outputMessage = "TABLE SUMMARY\n=========================\n\n";
+    public void processTableSummary(){
         for(Map.Entry<Integer,Double> entry : sortMap.entrySet()){
             Integer tableId = entry.getKey();
             Double totalPrice = entry.getValue();
@@ -171,14 +183,13 @@ public class OrderCollection {
                 message += bill.toString();
             }
             message += "=======================================\nTOTAL FOR THIS TABLE: "+
-                       String.format("%16s",totalPrice)+"\n";
+                    String.format("%16s",df.format(totalPrice))+"\n";
             double calculatedPrice = calculateBill(totalPrice);
             message += "DISCOUNT: "+String.format("%28s",percentFormat.format(1-calculatedPrice/totalPrice))+"\n";
             message += "PAY FOR: "+ String.format("%29s",df.format(calculatedPrice))+"\n\n\n";
             tableSummaryMap.put(tableId,message);
-            outputMessage += message;
+            draftList.add(message);
         }
-        return outputMessage;
     }
 
     /**
@@ -239,6 +250,7 @@ public class OrderCollection {
                 String.format("%14s",df.format(averageTableSale))+String.format("%12s",df.format(totalTableSale))+"\n";
         return message;
     }
+
 
     /**
      * return the max sale number of all sales

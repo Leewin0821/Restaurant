@@ -10,14 +10,14 @@ import java.awt.event.ActionListener;
  */
 public class BillGUI extends JFrame implements ActionListener {
     private OrderCollection orderCollection;
-    JTextField searchField;
-    JButton search;
-    JTextArea displayList;
+    private JTextField searchField;
+    private JButton search;
+    private JTextArea displayList;
 
     public BillGUI(OrderCollection orderCollection)
     {
         this.orderCollection = orderCollection;
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("orderList");
         setupCenterPanel();
         setupSouthPanel();
